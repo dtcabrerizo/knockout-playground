@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+
+    <style>
+        .red {
+            background-color: #FF6666
+        }
+
+        .green {
+            background-color: #66FF66
+        }
+
+        .blue {
+            background-color: #6666FF
+        }
+
+        .magenta { 
+            background-color: magenta
+        }
+    </style>
+</head>
+
+<body>
+
+
+    Value: <input type="text" data-bind="value: string, valueUpdate: 'keyup'">
+    textInput: <input type="text" data-bind="textInput: string">
+    <span data-bind="text: string"></span>
+
+    <hr>
+
+    <div>
+        <button data-bind="event: { mouseover: atualizaDetalhes.bind($data, true), mouseout: atualizaDetalhes.bind($data, false) }">
+            !!!! HOVER !!!!
+        </button>
+        <span data-bind="visible: detalhe">
+            Details
+        </span>
+    </div>
+
+    <hr>
+    <script type="text/html" id="htmltemplate">
+        <div> Dados do Template </div>
+        <div data-bind="text: string"></div>
+    </script>
+
+    <div data-bind="template: { name: 'htmltemplate', data: $data, afterRender: i => console.log(i) } "></div>
+
+    <hr>
+    <ul data-bind="foreach: array">
+        <li><a href="#" data-bind="text: $index() + ' ' + b, css: a"></a></li>
+    </ul>
+
+    <ul>
+        <!-- ko foreach: array -->
+        <li><a href="#" data-bind="text: b, css: a"></a></li>
+        <!-- /ko -->
+    </ul>
+
+
+    <script type="text/html" id="litemplate">
+        <li><a href="#" data-bind="text: b, css: a"></a></li>
+    </script>
+   
+    <ul data-bind="template: { name: 'litemplate', foreach: array}"> </ul>
+
+    <hr>
+
+    <label>
+        <input type="checkbox" data-bind="checked: bool" /> Exibe?        
+    </label>
+    <input type="text" data-bind="enable: bool">
+    
+    <label><input type="radio" name="color" value='red' data-bind="checked: color" /> Vermelho</label>
+    <label><input type="radio" name="color" value='blue' data-bind="checked: color" /> Azul</label>
+
+
+    <div data-bind="meuBinding: bool, color: color"> Visivel </div>
+
+    <hr>
+
+    <div>
+        Name: <b data-bind="visible: !editing(), text: name, click: edit">&nbsp;</b>
+        <input data-bind="visible: editing, value: name, hasFocus: editing" />
+    </div>
+
+    <hr>
+    <form action="" method="post" data-bind="submit: e => alert( (new FormData(e) ).get('Valor') )">
+        <input type="text" name="Valor">
+        <button type="submit">Echo</button>
+    </form>
+
+
+    <hr>
+
+    <input type="text" data-bind="value: mutable">
+    <div data-bind="text: mutable.hasChanged() "></div>
+
+
+    <script>
+
+        ko.bindingHandlers.meuBinding = {
+            init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+                // This will be called when the binding is first applied to an element
+                // Set up any initial state, event handlers, etc. here
+            },
+            update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+                // This will be called once when the binding is first applied to an element,
+                // and again whenever any observables/computeds that are accessed change
+                // Update the DOM element based on the supplied values here.
+
+                const value = valueAccessor();
+                const valueUnwrapped = ko.unwrap(value);
+                const color = allBindings.get('color') || (() => 'red');
+
+                element.style.display = valueUnwrapped ? 'block' : 'none';
+                element.style.backgroundColor = color();
+            }
+        }
+
+
+        ko.extenders.hasChanged = (target, enable) => {
+            if (enable) {
+                const original = target();
+                target.hasChanged = ko.observable(false);
+                target.subscribe( v => (original != v) ? target.hasChanged(true) : true );
+            }
+        }
+
+
+        const ViewModel = function () {
+            const struct = function (a, b) {
+                this.a = a;
+                this.b = b;
+            }
+
+            this.string = ko.observable('teste123');
+            this.bool = ko.observable(false);
+            this.color = ko.observable('red');
+
+            this.array = ko.observableArray();
+            this.array.push(new struct('red', 'Vermelho'));
+            this.array.push(new struct('green', 'Verde'));
+            this.array.push(new struct('blue', 'Azul'));
+            this.array.push(new struct('magenta', 'Magenta'));
+
+            this.detalhe = ko.observable(false);
+
+            this.atualizaDetalhes = v => this.detalhe(v);
+
+            this.editing = ko.observable(false);
+            this.edit = () => this.editing(true);
+            this.name = ko.observable("Dennys Cabrerizo");
+
+            this.name.subscribe(v => {
+                if (v == '') this.name('Insira um nome');
+            });
+
+            this.mutable = new ko.observable('Original').extend({hasChanged: true});
+        }
+
+        ko.applyBindings(new ViewModel());
+
+    </script>
+
+</body>
+
+</html>
