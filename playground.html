@@ -104,7 +104,9 @@
     <input type="text" data-bind="value: mutable">
     <div data-bind="text: mutable.hasChanged() "></div>
 
-
+    <hr>
+    <input type="text" data-bind="textInput: cor">
+    <div data-bind="style: { 'transition': getStyle(), 'background-color': cor() }">TESTE</div>
     <script>
 
         ko.bindingHandlers.meuBinding = {
@@ -165,6 +167,13 @@
             });
 
             this.mutable = new ko.observable('Original').extend({hasChanged: true});
+
+            this.cor = ko.observable('red');
+            this.getStyle = () => {
+                return 'background-color 3s ease-in-out, z-index 0s linear 0s'
+
+            }
+            
         }
 
         ko.applyBindings(new ViewModel());
